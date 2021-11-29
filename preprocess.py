@@ -10,9 +10,9 @@ import codecs
 import spacy
 import torch
 import tarfile
-import torchtext.data
-import torchtext.datasets
-from torchtext.datasets import TranslationDataset
+import torchtext.legacy.data
+import torchtext.legacy.datasets
+from torchtext.legacy.datasets import TranslationDataset
 import transformer.Constants as Constants
 from learn_bpe import learn_bpe
 from apply_bpe import BPE
@@ -246,7 +246,8 @@ def main_wo_bpe():
     Usage: python preprocess.py -lang_src de -lang_trg en -save_data multi30k_de_en.pkl -share_vocab
     '''
 
-    spacy_support_langs = ['de', 'el', 'en', 'es', 'fr', 'it', 'lt', 'nb', 'nl', 'pt']
+    spacy_support_langs = ['de_core_news_sm', 'el', 'en_core_web_sm', 'es', 'fr', 'it', 'lt', 'nb', 'nl', 'pt']
+    map_spacy_support_langs = {'de_core_news_sm': 'de', 'en_core_web_sm': 'en'}
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-lang_src', required=True, choices=spacy_support_langs)
@@ -276,11 +277,11 @@ def main_wo_bpe():
     def tokenize_trg(text):
         return [tok.text for tok in trg_lang_model.tokenizer(text)]
 
-    SRC = torchtext.data.Field(
+    SRC = torchtext.legacy.data.Field(
         tokenize=tokenize_src, lower=not opt.keep_case,
         pad_token=Constants.PAD_WORD, init_token=Constants.BOS_WORD, eos_token=Constants.EOS_WORD)
 
-    TRG = torchtext.data.Field(
+    TRG = torchtext.legacy.data.Field(
         tokenize=tokenize_trg, lower=not opt.keep_case,
         pad_token=Constants.PAD_WORD, init_token=Constants.BOS_WORD, eos_token=Constants.EOS_WORD)
 
@@ -288,7 +289,7 @@ def main_wo_bpe():
     MIN_FREQ = opt.min_word_count
 
     if not all([opt.data_src, opt.data_trg]):
-        assert {opt.lang_src, opt.lang_trg} == {'de', 'en'}
+        assert {opt.lang_src, opt.lang_trg} == {'de_core_news_sm', 'en_core_web_sm'}
     else:
         # Pack custom txt file into example datasets
         raise NotImplementedError
@@ -296,8 +297,8 @@ def main_wo_bpe():
     def filter_examples_with_length(x):
         return len(vars(x)['src']) <= MAX_LEN and len(vars(x)['trg']) <= MAX_LEN
 
-    train, val, test = torchtext.datasets.Multi30k.splits(
-            exts = ('.' + opt.lang_src, '.' + opt.lang_trg),
+    train, val, test = torchtext.legacy.datasets.Multi30k.splits(
+            exts = ('.' + map_spacy_support_langs[opt.lang_src], '.' + map_spacy_support_langs[opt.lang_trg]),
             fields = (SRC, TRG),
             filter_pred=filter_examples_with_length)
 

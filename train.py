@@ -14,8 +14,8 @@ import os
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
-from torchtext.data import Field, Dataset, BucketIterator
-from torchtext.datasets import TranslationDataset
+from torchtext.legacy.data import Field, Dataset, BucketIterator
+from torchtext.legacy.datasets import TranslationDataset
 
 import transformer.Constants as Constants
 from transformer.Models import Transformer
